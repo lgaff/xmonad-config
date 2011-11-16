@@ -1,0 +1,3 @@
+My xmonad configuration file. It requires pbrisbin's Dzen module to get running. Get that from his github: https://github.com/pbrisbin/xmonad-config. 
+
+Its fairly vanilla, a lot of stuff is lifted from various xmonad configs around the internets. This is attributed where done. Mostly it just spawns a couple of dzen bars for the top of screen, and defines a few custom hotkeys for window management. There's also a refactored variant of pbrisbin's cleanStart function found in his Utils.hs. 
