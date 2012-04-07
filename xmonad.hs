@@ -13,8 +13,12 @@ import XMonad.Layout.ResizableTile
 
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.UrgencyHook
 import XMonad.Hooks.SetWMName
+
+import XMonad.Actions.CycleWS
+import XMonad.Actions.FloatKeys
 
 import XMonad.Util.EZConfig
 import XMonad.Util.Run
@@ -27,6 +31,7 @@ main = do
      conkyBar <- spawnPipe myConkyBar
      xmonad $ myUrgencyHook $ defaultConfig
      	    { terminal = "urxvt"
+	    , focusFollowsMouse = False
      	    , normalBorderColor = myInactiveBorderColor
 	    , focusedBorderColor = myActiveBorderColor
      	    , manageHook = manageDocks <+> myManageHook <+> manageHook defaultConfig
@@ -36,7 +41,7 @@ main = do
      	    , modMask = mod4Mask
      	    , keys = myKeys
      	    , workspaces = myWorkSpaces
-     	    }
+     	    } `additionalKeysP` audioKeys
 
 -- paths.
 myBitmapsPath = ".dzen/bitmaps/"
@@ -104,8 +109,18 @@ myUrgencyHook = withUrgencyHook dzenUrgencyHook
 		     ]
 	      }
 
-myManageHook = composeAll
-	     [ className =? "Gimp" --> doFloat ]
+myManageHook = composeAll . concat $
+	     [ [ className =? "Gimp" --> doFloat ]
+	     , [ className =? "Chromium" --> doShift "web " ]
+	     , [ className =? "Vlc"	 --> doShift "avi " ]
+	     , [ className =? "Emacs"	 --> doShift "txt " ]
+	     , [ className =? "Empathy"  --> doShift "msg " ]
+	     , [ className =? c		 --> doFloat | c <- myFloats ]
+	     ]
+	  
+myMatchAnywhereFloatsC = []
+myMatchAnywhereFloatsT = []
+myFloats	       = [ "Empathy", "Xmessage", "VirtualBox"]   
 
 -- prompt
 myXPConfig = defaultXPConfig {
@@ -121,12 +136,17 @@ myXPConfig = defaultXPConfig {
 -- Key bindings. Union the defaults with my keys.
 myKeys x = M.union (M.fromList (newKeys x)) (keys defaultConfig x)
 
-newKeys conf@(XConfig { XMonad.modMask = modm}) = [
-	-- Not sure about this but will test out
-	((modm, xK_p), shellPrompt myXPConfig),
-	-- clean kill & restart
-	((modm, xK_q), spawn "xmonad --recompile; killall conky dzen2 xxkb; xmonad --restart")
+newKeys conf@(XConfig { XMonad.modMask = modm}) = 
+	[ ((modm, xK_q), spawn "xmonad --recompile; killall conky dzen2 xxkb; xmonad --restart")
+	, ((modm, xK_b), spawn "chromium")
+	, ((modm, xK_grave), toggleWS)
 	]
+
+audioKeys :: [(String, X())]
+audioKeys = [ ("<XF86AudioMute>"	, spawn "amixer -q set Master toggle" )
+	    , ("<XF86AudioRaiseVolume>" , spawn "amixer -q set Master 10%+" )
+	    , ("<XF86AudioLowerVolume>" , spawn "amixer -q set Master 10%-" )
+	    ]
 
 -- dzen config.
 myDzenPP h = defaultPP 
