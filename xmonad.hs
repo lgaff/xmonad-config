@@ -19,7 +19,10 @@ import XMonad.Hooks.SetWMName
 
 import XMonad.Actions.CycleWS
 import XMonad.Actions.FloatKeys
+import XMonad.Actions.WindowGo
+import XMonad.Actions.GroupNavigation
 
+import qualified XMonad.StackSet as W
 import XMonad.Util.EZConfig
 import XMonad.Util.Run
 import Graphics.X11.Xlib
@@ -35,7 +38,7 @@ main = do
      	    , normalBorderColor = myInactiveBorderColor
 	    , focusedBorderColor = myActiveBorderColor
      	    , manageHook = manageDocks <+> myManageHook <+> manageHook defaultConfig
-     	    , layoutHook = avoidStruts $ myLayoutHook
+     	    , layoutHook = smartBorders (avoidStruts $ myLayoutHook)
      	    , startupHook = setWMName "LG3D"
      	    , logHook = dynamicLogWithPP $ myDzenPP myStatusBarPipe
      	    , modMask = mod4Mask
@@ -95,6 +98,7 @@ myWorkSpaces =
    , "txt "
    , "msg "
    , "avi "	     
+   , "tmp "
    ]
 --   where
 --      wrapBitmap bitmap = "^p(5)^i(" ++ myBitmapsPath ++ bitmap ++ ")^p(5)"
@@ -116,6 +120,7 @@ myManageHook = composeAll . concat $
 	     , [ className =? "Emacs"	 --> doShift "txt " ]
 	     , [ className =? "Empathy"  --> doShift "msg " ]
 	     , [ className =? c		 --> doFloat | c <- myFloats ]
+	     , [ isFullscreen 		 --> doFullFloat    ]
 	     ]
 	  
 myMatchAnywhereFloatsC = []
@@ -138,7 +143,10 @@ myKeys x = M.union (M.fromList (newKeys x)) (keys defaultConfig x)
 
 newKeys conf@(XConfig { XMonad.modMask = modm}) = 
 	[ ((modm, xK_q), spawn "xmonad --recompile; killall conky dzen2 xxkb; xmonad --restart")
-	, ((modm, xK_b), spawn "chromium")
+	, ((modm .|. shiftMask, xK_b), runOrRaise "chromium" (className =? "Chromium"))
+	, ((modm, xK_e), raiseEditor)
+	, ((modm, xK_f), nextMatchWithThis Forward className)
+	, ((modm, xK_b), nextMatchWithThis Backward className)
 	, ((modm, xK_grave), toggleWS)
 	]
 
