@@ -32,8 +32,7 @@ import qualified Data.Map as M
 import System.IO
 
 main = do
-     myStatusBarPipe <- spawnPipe myStatusBar
-     conkyBar <- spawnPipe myConkyBar
+     xmproc <- spawnPipe "/usr/bin/xmobar /home/duran/.xmonad/xmobarrc"
      xmonad $ myUrgencyHook $ defaultConfig
      	    { terminal = "urxvt"
 	    , focusFollowsMouse = False
@@ -42,7 +41,10 @@ main = do
      	    , manageHook = manageDocks <+> myManageHook <+> manageHook defaultConfig
      	    , layoutHook = smartBorders (avoidStruts $ myLayoutHook)
      	    , startupHook = setWMName "LG3D"
-     	    , logHook = dynamicLogWithPP $ myDzenPP myStatusBarPipe
+     	    , logHook = dynamicLogWithPP xmobarPP
+                            { ppOutput = hPutStrLn xmproc
+                            , ppTitle = xmobarColor "green" "" . shorten 50
+                            }
      	    , modMask = mod4Mask
      	    , keys = myKeys
      	    , workspaces = myWorkSpaces
