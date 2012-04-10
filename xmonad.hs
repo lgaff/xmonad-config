@@ -33,6 +33,7 @@ import System.IO
 
 main = do
      xmproc <- spawnPipe "/usr/bin/xmobar /home/duran/.xmonad/xmobarrc"
+     xmsess <- spawn "/home/duran/.xsession"
      xmonad $ myUrgencyHook $ defaultConfig
      	    { terminal = "urxvt"
 	    , focusFollowsMouse = False
@@ -76,6 +77,7 @@ myTitleFgColor	       = "white"
 
 myUrgencyHintFgColor   = "white"
 myUrgencyHintBgColor   = "brown"
+
 
 -- dzen options
 myDzenGenOpts	= "-fg '" ++ myFgColor ++ "' -bg '"
@@ -148,7 +150,7 @@ myXPConfig = defaultXPConfig {
 myKeys x = M.union (M.fromList (newKeys x)) (keys defaultConfig x)
 
 newKeys conf@(XConfig { XMonad.modMask = modm}) = 
-	[ ((modm, xK_q), spawn "xmonad --recompile; killall conky dzen2 xxkb; xmonad --restart")
+	[ ((modm, xK_q), spawn "xmonad --recompile; killall trayer redshift xmobar; xmonad --restart")
 	, ((modm .|. shiftMask, xK_b), runOrRaise "chromium" (className =? "Chromium"))
 	, ((modm, xK_e), raiseEditor)
 	, ((modm, xK_f), nextMatchWithThis Forward className)
