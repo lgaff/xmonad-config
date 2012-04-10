@@ -12,6 +12,8 @@ import XMonad.Layout.NoBorders
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.Accordion
 import XMonad.Layout.Grid
+import XMonad.Layout.Roledex
+
 
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
@@ -90,7 +92,7 @@ myStatusBar = "dzen2 -w 700 -ta l " ++ myDzenGenOpts
 -- conky bar
 myConkyBar = "conky -c ~/.conkybar | dzen2 -x 700 -w 666 -ta r " ++ myDzenGenOpts
 
-myLayoutHook = smartBorders $ (tiled ||| Mirror tiled ||| Full ||| Accordion ||| Grid )
+myLayoutHook = smartBorders $ (Full ||| tiled ||| Mirror tiled ||| Roledex  ||| Accordion ||| Grid )
     where
 	tiled = ResizableTall nmaster delta ratio []
 	nmaster = 1
