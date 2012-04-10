@@ -10,6 +10,8 @@ import XMonad.Prompt.Man
 import XMonad.Layout
 import XMonad.Layout.NoBorders
 import XMonad.Layout.ResizableTile
+import XMonad.Layout.Accordion
+import XMonad.Layout.Grid
 
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
@@ -84,7 +86,7 @@ myStatusBar = "dzen2 -w 700 -ta l " ++ myDzenGenOpts
 -- conky bar
 myConkyBar = "conky -c ~/.conkybar | dzen2 -x 700 -w 666 -ta r " ++ myDzenGenOpts
 
-myLayoutHook = smartBorders $ (tiled ||| Mirror tiled ||| Full)
+myLayoutHook = smartBorders $ (tiled ||| Mirror tiled ||| Full ||| Accordion ||| Grid )
     where
 	tiled = ResizableTall nmaster delta ratio []
 	nmaster = 1
@@ -98,6 +100,7 @@ myWorkSpaces =
    , "txt "
    , "msg "
    , "avi "	     
+   , "rdp "
    , "tmp "
    ]
 --   where
@@ -119,6 +122,7 @@ myManageHook = composeAll . concat $
 	     , [ className =? "Vlc"	 --> doShift "avi " ]
 	     , [ className =? "Emacs"	 --> doShift "txt " ]
 	     , [ className =? "Empathy"  --> doShift "msg " ]
+	     , [ className =? "rdesktop" --> doShift "rdp " ]
 	     , [ className =? c		 --> doFloat | c <- myFloats ]
 	     , [ isFullscreen 		 --> doFullFloat    ]
 	     ]
@@ -147,7 +151,14 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
 	, ((modm, xK_e), raiseEditor)
 	, ((modm, xK_f), nextMatchWithThis Forward className)
 	, ((modm, xK_b), nextMatchWithThis Backward className)
+	, ((modm, xK_c), spawn "~/bin/chromeproxy")
 	, ((modm, xK_grave), toggleWS)
+	-- workspace cycling
+	, ((modm, xK_Right), nextWS)
+	, ((modm, xK_Left), prevWS)
+	, ((modm .|. shiftMask, xK_Left), shiftToPrev >> prevWS)
+	, ((modm .|. shiftMask, xK_Right), shiftToNext >> nextWS)
+	, ((modm, xK_Up), moveTo Next EmptyWS)
 	]
 
 audioKeys :: [(String, X())]
@@ -172,6 +183,8 @@ myDzenPP h = defaultPP
 			       	   "ResizableTall" -> wrapBitmap "xbm/layout-tall.xbm"
 				   "Mirror ResizableTall" -> wrapBitmap "xbm/layout-mtall.xbm"
 				   "Full" -> wrapBitmap "xbm/layout-full.xbm"
+				   "Grid" -> wrapBitmap "xbm/layout-grid.xbm"
+				   "Accordion" -> wrapBitmap "xbm/layout-accordion.xbm"
 			       )
 	}
 	where
