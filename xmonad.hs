@@ -1,3 +1,4 @@
+-- -*-haskell-*-
 -- xmonad config for dzen
 
 import XMonad
@@ -29,6 +30,7 @@ import XMonad.Actions.GroupNavigation
 import qualified XMonad.StackSet as W
 import XMonad.Util.EZConfig
 import XMonad.Util.Run
+import XMonad.Util.Scratchpad
 import Graphics.X11.Xlib
 import qualified Data.Map as M
 import System.IO
@@ -37,18 +39,15 @@ main = do
      xmproc <- spawnPipe "/usr/bin/xmobar /home/duran/.xmonad/xmobarrc"
      xmsess <- spawn "/home/duran/.xsession"
      xmonad $ myUrgencyHook $ defaultConfig
-     	    { terminal = "urxvt"
+     	    { terminal = myTerminal
 	    , focusFollowsMouse = False
      	    , normalBorderColor = myInactiveBorderColor
 	    , focusedBorderColor = myActiveBorderColor
      	    , manageHook = manageDocks <+> myManageHook <+> manageHook defaultConfig
      	    , layoutHook = smartBorders (avoidStruts $ myLayoutHook)
      	    , startupHook = setWMName "LG3D"
-     	    , logHook = dynamicLogWithPP xmobarPP
-                            { ppOutput = hPutStrLn xmproc
-                            , ppTitle = xmobarColor "green" "" . shorten 50
-                            }
-     	    , modMask = mod4Mask
+     	    , logHook = myLogHook xmproc
+      	    , modMask = mod4Mask
      	    , keys = myKeys
      	    , workspaces = myWorkSpaces
      	    } `additionalKeysP` audioKeys
@@ -57,6 +56,7 @@ main = do
 myBitmapsPath = ".dzen/bitmaps/"
 
 myFont = "-*-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
+myTerminal = "urxvt"
 
 -- Colors
 myBgBgColor = "black"
@@ -99,15 +99,23 @@ myLayoutHook = smartBorders $ (Full ||| tiled ||| Mirror tiled ||| Roledex  ||| 
 	delta = 3/100
 	ratio = 1/2
 
+myLogHook h = dynamicLogWithPP $ xmobarPP
+            { ppOutput = hPutStrLn h
+            , ppTitle = xmobarColor "green" "" . shorten 50
+            , ppHidden = xmobarColor "white" "" . noScratchpad
+            }
+            where
+                noScratchpad ws = if ws == "NSP" then "" else ws
+
 -- workspaces
 myWorkSpaces =
-   [ "sys "
-   , "web "
-   , "txt "
-   , "msg "
-   , "avi "	     
-   , "rdp "
-   , "tmp "
+   [ "sys"
+   , "web"
+   , "txt"
+   , "msg"
+   , "avi"	     
+   , "rdp"
+   , "tmp"
    ]
 --   where
 --      wrapBitmap bitmap = "^p(5)^i(" ++ myBitmapsPath ++ bitmap ++ ")^p(5)"
@@ -122,16 +130,30 @@ myUrgencyHook = withUrgencyHook dzenUrgencyHook
 		     ]
 	      }
 
-myManageHook = composeAll . concat $
-	     [ [ className =? "Gimp" --> doFloat ]
-	     , [ className =? "Chromium" --> doShift "web " ]
-	     , [ className =? "Vlc"	 --> doShift "avi " ]
-	     , [ className =? "Emacs"	 --> doShift "txt " ]
-	     , [ className =? "Empathy"  --> doShift "msg " ]
-	     , [ className =? "rdesktop" --> doShift "rdp " ]
-	     , [ className =? c		 --> doFloat | c <- myFloats ]
-	     , [ isFullscreen 		 --> doFullFloat    ]
-	     ]
+myManageHook = composeAll [matchAny v --> a | (v, a) <- myActions] <+> manageScratchpad
+    where myActions = [ ("rdesktop",  doShift "msg")
+                      , ("Chromium",  doShift "web")
+                      , ("Vlc",       doShift "avi")
+                      , ("Emacs",     doShift "txt")
+                      ]
+
+-- pbrisbin's matchAny (http://pbrisbin.com/static/docs/haskell/xmonad-config/src/Utils.html)
+matchAny :: String -> Query Bool
+matchAny x = foldr ((<||>) . (=? x)) (return False) [className, title, name, role]
+
+name :: Query String
+name = stringProperty "WM_NAME"
+
+role :: Query String
+role = stringProperty "WM_ROLE"             
+
+manageScratchpad :: ManageHook
+manageScratchpad = scratchpadManageHook (W.RationalRect l t w h)
+                 where
+                        h = 0.5    -- height
+                        w = 0.5    -- width
+                        t = 0.25   -- distance from top
+                        l = 0.25   -- distance from left
 	  
 myMatchAnywhereFloatsC = []
 myMatchAnywhereFloatsT = []
@@ -165,6 +187,7 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
 	, ((modm .|. shiftMask, xK_Left), shiftToPrev >> prevWS)
 	, ((modm .|. shiftMask, xK_Right), shiftToNext >> nextWS)
 	, ((modm, xK_Up), moveTo Next EmptyWS)
+        , ((modm, xK_s), scratchpadSpawnActionTerminal myTerminal)
 	]
 
 audioKeys :: [(String, X())]
