@@ -10,9 +10,10 @@ Config { font = "-*-fixed-*-*-*-*-*-*-*-*-*-*-*-"
        	 	    , Run Memory ["-t", "Mem: <usedratio>%"] 10
 		    , Run Date "%a %d-%b-%Y %H:%M:%S" "date" 10
 		    , Run Swap [] 10
+                    , Run BatteryP ["BAT0"] ["-t", "<acstatus> (<watts>) [<leftbar>]", "--", "-l", "red", "-m", "green", "-p", "yellow"] 4
 		    , Run StdinReader
 		    ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%StdinReader% }{ %cpu% | %memory% * %swap% <fc=#ee9a00>%date%</fc>"
+       , template = "%StdinReader% }{ %cpu% | %memory% * %swap% | Bat: %battery% -- <fc=#ee9a00>%date%</fc>"
        }

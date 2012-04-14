@@ -2,43 +2,32 @@
 -- xmonad config for dzen
 
 import XMonad
-import XMonad.Core
 
-import XMonad.Prompt
-import XMonad.Prompt.Shell
-import XMonad.Prompt.Man
+import XMonad.Layout.NoBorders          (smartBorders)
+import XMonad.Layout.ResizableTile      
+import XMonad.Layout.Accordion          
+import XMonad.Layout.Grid               
+import XMonad.Layout.Roledex            
 
-import XMonad.Layout
-import XMonad.Layout.NoBorders
-import XMonad.Layout.ResizableTile
-import XMonad.Layout.Accordion
-import XMonad.Layout.Grid
-import XMonad.Layout.Roledex
-
-
-import XMonad.Hooks.DynamicLog
-import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.ManageHelpers
-import XMonad.Hooks.UrgencyHook
-import XMonad.Hooks.SetWMName
+import XMonad.Hooks.DynamicLog          (dynamicLogWithPP, xmobarPP, ppOutput, ppTitle, xmobarColor, shorten, ppHidden)
+import XMonad.Hooks.ManageDocks         (manageDocks, avoidStruts)
+import XMonad.Hooks.SetWMName           (setWMName)
 
 import XMonad.Actions.CycleWS
-import XMonad.Actions.FloatKeys
-import XMonad.Actions.WindowGo
+import XMonad.Actions.WindowGo 
 import XMonad.Actions.GroupNavigation
 
 import qualified XMonad.StackSet as W
-import XMonad.Util.EZConfig
-import XMonad.Util.Run
-import XMonad.Util.Scratchpad
-import Graphics.X11.Xlib
+import XMonad.Util.EZConfig             (additionalKeysP)
+import XMonad.Util.Run                  (spawnPipe)
+import XMonad.Util.Scratchpad           (scratchpadManageHook, scratchpadSpawnActionTerminal)
 import qualified Data.Map as M
-import System.IO
+import System.IO                        (hPutStrLn)
 
 main = do
      xmproc <- spawnPipe "/usr/bin/xmobar /home/duran/.xmonad/xmobarrc"
      xmsess <- spawn "/home/duran/.xsession"
-     xmonad $ myUrgencyHook $ defaultConfig
+     xmonad $ defaultConfig
      	    { terminal = myTerminal
 	    , focusFollowsMouse = False
      	    , normalBorderColor = myInactiveBorderColor
@@ -80,18 +69,6 @@ myTitleFgColor	       = "white"
 myUrgencyHintFgColor   = "white"
 myUrgencyHintBgColor   = "brown"
 
-
--- dzen options
-myDzenGenOpts	= "-fg '" ++ myFgColor ++ "' -bg '"
-		++ myBgColor ++ "' -fn '" ++ myFont 
-		++ "' -h '16'"
-
--- status bar
-myStatusBar = "dzen2 -w 700 -ta l " ++ myDzenGenOpts
-
--- conky bar
-myConkyBar = "conky -c ~/.conkybar | dzen2 -x 700 -w 666 -ta r " ++ myDzenGenOpts
-
 myLayoutHook = smartBorders $ (Full ||| tiled ||| Mirror tiled ||| Roledex  ||| Accordion ||| Grid )
     where
 	tiled = ResizableTall nmaster delta ratio []
@@ -117,18 +94,6 @@ myWorkSpaces =
    , "rdp"
    , "tmp"
    ]
---   where
---      wrapBitmap bitmap = "^p(5)^i(" ++ myBitmapsPath ++ bitmap ++ ")^p(5)"
-
-myUrgencyHook = withUrgencyHook dzenUrgencyHook
-	      {
-		args = 
-		     [ "-x", "0", "-y", "576", "-h", "15", "-w", "1024"
-		     , "-ta", "r"
-		     , "-fg", "" ++ myUrgencyHintFgColor ++ ""
-		     , "-bg", "" ++ myUrgencyHintBgColor ++ ""
-		     ]
-	      }
 
 myManageHook = composeAll [matchAny v --> a | (v, a) <- myActions] <+> manageScratchpad
     where myActions = [ ("rdesktop",  doShift "msg")
@@ -159,17 +124,6 @@ myMatchAnywhereFloatsC = []
 myMatchAnywhereFloatsT = []
 myFloats	       = [ "Empathy", "Xmessage", "VirtualBox"]   
 
--- prompt
-myXPConfig = defaultXPConfig {
-	     position = Bottom,
-	     promptBorderWidth = 0,
-	     height = 15,
-	     bgColor = myBgColor,
-	     fgColor = myFgColor,
-	     fgHLight = myHighlightedFgColor,
-	     bgHLight = myHighlightedBgColor
-	     }
-
 -- Key bindings. Union the defaults with my keys.
 myKeys x = M.union (M.fromList (newKeys x)) (keys defaultConfig x)
 
@@ -196,31 +150,6 @@ audioKeys = [ ("<XF86AudioMute>"	, spawn "amixer -q set Master toggle" )
 	    , ("<XF86AudioLowerVolume>" , spawn "amixer -q set Master 10%-" )
 	    ]
 
--- dzen config.
-myDzenPP h = defaultPP 
-	 { ppOutput	     = hPutStrLn h
-	 , ppSep 	     = "^bg(" ++ myBgColor ++ ")^r(1,15)^bg()"
-	 , ppWsSep  	     = ""
-	 , ppCurrent	     = wrapFgBg myCurrentWsFgColor myCurrentWsBgColor
-	 , ppVisible 	     = wrapFgBg myVisibleWsFgColor myVisibleWsBgColor
-	 , ppHidden	     = wrapFg myHiddenWsFgColor
-	 , ppHiddenNoWindows = wrapFg myHiddenEmptyWsFgColor
-	 , ppUrgent	     = wrapBg myUrgentWsBgColor
-	 , ppTitle	     = (\x -> " " ++ wrapFg myTitleFgColor x)
-	 , ppLayout	     = dzenColor myFgColor"" .
-	   		       (\x -> case x of
-			       	   "ResizableTall" -> wrapBitmap "xbm/layout-tall.xbm"
-				   "Mirror ResizableTall" -> wrapBitmap "xbm/layout-mtall.xbm"
-				   "Full" -> wrapBitmap "xbm/layout-full.xbm"
-				   "Grid" -> wrapBitmap "xbm/layout-grid.xbm"
-				   "Accordion" -> wrapBitmap "xbm/layout-accordion.xbm"
-			       )
-	}
-	where
-		wrapFgBg fg bg content= wrap ("^fg(" ++ fg ++ ")^bg(" ++ bg ++ ")") "^fg()^bg()" content
-		wrapFg color content = wrap ("^fg(" ++ color ++ ")") "^fg()" content
-		wrapBg color content = wrap ("^bg(" ++ color ++ ")") "^bg()" content
-		wrapBitmap bitmap = "^p(5)^i(" ++ myBitmapsPath ++ bitmap ++ ")^p(5)"
 	 
 		     
 	
