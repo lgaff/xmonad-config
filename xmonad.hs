@@ -139,7 +139,7 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
 	, ((modm, xK_f), nextMatchWithThis Forward className)
 	, ((modm, xK_b), nextMatchWithThis Backward className)
 	, ((modm, xK_c), spawn "~/bin/chromeproxy")
-	, ((modm, xK_grave), toggleWS)
+	, ((modm, xK_grave), toggleWS' ["NSP"])
 	-- workspace cycling
 	, ((modm, xK_Right), nextWS)
 	, ((modm, xK_Left), prevWS)
