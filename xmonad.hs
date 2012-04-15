@@ -12,6 +12,7 @@ import XMonad.Layout.Roledex
 import XMonad.Hooks.DynamicLog          (dynamicLogWithPP, xmobarPP, ppOutput, ppTitle, xmobarColor, shorten, ppHidden)
 import XMonad.Hooks.ManageDocks         (manageDocks, avoidStruts)
 import XMonad.Hooks.SetWMName           (setWMName)
+import XMonad.Hooks.ManageHelpers
 
 import XMonad.Actions.CycleWS
 import XMonad.Actions.WindowGo 
@@ -95,12 +96,16 @@ myWorkSpaces =
    , "tmp"
    ]
 
-myManageHook = composeAll [matchAny v --> a | (v, a) <- myActions] <+> manageScratchpad
-    where myActions = [ ("rdesktop",  doShift "msg")
-                      , ("Chromium",  doShift "web")
-                      , ("Vlc",       doShift "avi")
-                      , ("Emacs",     doShift "txt")
-                      ]
+myManageHook = composeAll 
+             [matchAny v --> a | (v, a) <- myActions ] <+> manageScratchpad <+> myFullHook
+             where myActions = [ ("rdesktop",  doShift "msg")
+                               , ("Chromium",  doShift "web")
+                               , ("Vlc",       doShift "avi")
+                               , ("Emacs",     doShift "txt")
+                               ]
+
+myFullHook = composeAll
+           [ isFullscreen --> doFullFloat ]
 
 -- pbrisbin's matchAny (http://pbrisbin.com/static/docs/haskell/xmonad-config/src/Utils.html)
 matchAny :: String -> Query Bool
