@@ -22,8 +22,10 @@ import qualified XMonad.StackSet as W
 import XMonad.Util.EZConfig             (additionalKeysP)
 import XMonad.Util.Run                  (spawnPipe)
 import XMonad.Util.Scratchpad           (scratchpadManageHook, scratchpadSpawnActionTerminal)
+import XMonad.Util.WorkspaceCompare     (getSortByIndex)
 import qualified Data.Map as M
 import System.IO                        (hPutStrLn)
+import Data.Maybe                       (isJust)
 
 main = do
      xmproc <- spawnPipe "/usr/bin/xmobar /home/duran/.xmonad/xmobarrc"
@@ -41,6 +43,7 @@ main = do
      	    , keys = myKeys
      	    , workspaces = myWorkSpaces
      	    } `additionalKeysP` audioKeys
+
 
 -- paths.
 myBitmapsPath = ".dzen/bitmaps/"
@@ -79,8 +82,8 @@ myLayoutHook = smartBorders $ (Full ||| tiled ||| Mirror tiled ||| Roledex  ||| 
 
 myLogHook h = dynamicLogWithPP $ xmobarPP
             { ppOutput = hPutStrLn h
-            , ppTitle = xmobarColor "green" "" . shorten 50
-            , ppHidden = xmobarColor "white" "" . noScratchpad
+            , ppTitle = xmobarColor "orange" "" . shorten 50
+            , ppHidden = xmobarColor "gray40" "" . noScratchpad
             }
             where
                 noScratchpad ws = if ws == "NSP" then "" else ws
@@ -141,20 +144,28 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
 	, ((modm, xK_c), spawn "~/bin/chromeproxy")
 	, ((modm, xK_grave), toggleWS' ["NSP"])
 	-- workspace cycling
-	, ((modm, xK_Right), nextWS)
-	, ((modm, xK_Left), prevWS)
-	, ((modm .|. shiftMask, xK_Left), shiftToPrev >> prevWS)
-	, ((modm .|. shiftMask, xK_Right), shiftToNext >> nextWS)
+	, ((modm, xK_Right), moveTo Next skipEmptyAndSP)
+	, ((modm, xK_Left),  moveTo Prev skipEmptyAndSP)
+	, ((modm .|. shiftMask, xK_Right), shiftTo Next skipEmptyAndSP)
+	, ((modm .|. shiftMask, xK_Left), shiftTo Prev skipEmptyAndSP)
 	, ((modm, xK_Up), moveTo Next EmptyWS)
+        , ((modm .|. shiftMask, xK_Up), shiftTo Next EmptyWS)
         , ((modm, xK_s), scratchpadSpawnActionTerminal myTerminal)
 	]
+        where skipEmptyAndSP = (WSIs $ noEmptyOrSP ["NSP"])
+
+noSPWS dir wtype = do t <- findWorkspace getSortByIndex dir wtype 1
+                      windows . W.greedyView $ t
+
+noEmptyOrSP s = return (\w -> (W.tag w `notElem` s) && isJust (W.stack w))
 
 audioKeys :: [(String, X())]
 audioKeys = [ ("<XF86AudioMute>"	, spawn "amixer -q set Master toggle" )
 	    , ("<XF86AudioRaiseVolume>" , spawn "amixer -q set Master 10%+" )
 	    , ("<XF86AudioLowerVolume>" , spawn "amixer -q set Master 10%-" )
+            , ("<XF86Forward>"          , moveTo Next NonEmptyWS)
+            , ("<XF86Back>"             , moveTo Prev NonEmptyWS)
 	    ]
 
-	 
 		     
-	
+toggleOrViewNoSP = toggleOrDoSkip ["NSP"] W.greedyView	
