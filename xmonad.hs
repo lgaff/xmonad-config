@@ -9,7 +9,7 @@ import XMonad.Layout.Accordion
 import XMonad.Layout.Grid               
 import XMonad.Layout.Roledex            
 
-import XMonad.Hooks.DynamicLog          (dynamicLogWithPP, xmobarPP, ppOutput, ppTitle, xmobarColor, shorten, ppHidden)
+import XMonad.Hooks.DynamicLog          
 import XMonad.Hooks.ManageDocks         (manageDocks, avoidStruts)
 import XMonad.Hooks.SetWMName           (setWMName)
 import XMonad.Hooks.ManageHelpers
@@ -48,7 +48,8 @@ main = do
 -- paths.
 myBitmapsPath = ".dzen/bitmaps/"
 
-myFont = "-*-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
+myFont = "xft:Anonymous Pro:size=10:regular"
+--myFont = "-*-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
 myTerminal = "urxvt"
 
 -- Colors
@@ -82,8 +83,12 @@ myLayoutHook = smartBorders $ (Full ||| tiled ||| Mirror tiled ||| Roledex  ||| 
 
 myLogHook h = dynamicLogWithPP $ xmobarPP
             { ppOutput = hPutStrLn h
-            , ppTitle = xmobarColor "orange" "" . shorten 50
-            , ppHidden = xmobarColor "gray40" "" . noScratchpad
+            , ppTitle = xmobarColor "#b58900" "" . shorten 50
+            , ppHidden = xmobarColor "#93a1a1" "" . noScratchpad
+            , ppCurrent = xmobarColor "#268bd2" ""
+            , ppLayout = xmobarColor "#2aa198" ""
+            , ppWsSep = "::"
+            , ppSep = " : "
             }
             where
                 noScratchpad ws = if ws == "NSP" then "" else ws
@@ -136,7 +141,7 @@ myFloats	       = [ "Empathy", "Xmessage", "VirtualBox"]
 myKeys x = M.union (M.fromList (newKeys x)) (keys defaultConfig x)
 
 newKeys conf@(XConfig { XMonad.modMask = modm}) = 
-	[ ((modm, xK_q), spawn "xmonad --recompile; killall trayer redshift xmobar; xmonad --restart")
+	[ ((modm, xK_q), spawn "xmonad --recompile; killall redshift xmobar; xmonad --restart")
 	, ((modm .|. shiftMask, xK_b), runOrRaise "chromium" (className =? "Chromium"))
 	, ((modm, xK_e), raiseEditor)
 	, ((modm, xK_f), nextMatchWithThis Forward className)

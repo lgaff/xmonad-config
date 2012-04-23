@@ -1,19 +1,21 @@
 -- -*-Haskell-*-
-Config { font = "-*-fixed-*-*-*-*-*-*-*-*-*-*-*-"
-       , bgColor = "gray20"
-       , fgColor = "white"
-       , border = NoBorder
-       , borderColor = "white"
+
+--Config { font = "-*-fixed-*-*-*-*-*-*-*-*-*-*-*-"
+Config { font = "xft:Anonymous Pro:size=10"
+       , bgColor = "#002b36"
+       , fgColor = "#657b83"
+       , border = BottomB
+       , borderColor = "#586e75"
        , lowerOnStart = False
-       , position = TopW L 90
-       , commands = [ Run Cpu ["-L", "3", "-H", "50", "--normal", "green", "--high", "red"] 10
-       	 	    , Run Memory ["-t", "Mem: <usedratio>%"] 10
+       , position = TopW L 100
+       , commands = [ Run MultiCpu ["-L", "0", "-H", "50", "--normal", "#859900", "--high", "#d33682", "-t", "<fc=#2aa198><autobar></fc>"] 10
+       	 	    , Run Memory ["-H", "50", "-L", "0", "-h", "#d33682", "--normal", "#849900", "-t", "<fc=#2aa198><usedbar></fc>"] 10
 		    , Run Date "%a %d-%b-%Y %H:%M:%S" "date" 10
-		    , Run Swap [] 10
-                    , Run BatteryP ["BAT0"] ["-t", "<acstatus> (<watts>) [<leftbar>]", "--", "-l", "red", "-m", "green", "-p", "yellow"] 4
+		    , Run Swap ["-t", "<fc=#2aa198><usedratio>%</fc>"] 10
+--                    , Run Volume "HDA Intel" "Master" [] 10
 		    , Run StdinReader
 		    ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%StdinReader% }{ %cpu% | %memory% * %swap% | Bat: %battery% -- <fc=#ee9a00>%date%</fc>"
+       , template = "%StdinReader% }{ cpu %multicpu% : mem %memory% : swap %swap% : <fc=#2aa198>%date%</fc> : vol"
        }
