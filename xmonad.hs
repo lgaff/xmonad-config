@@ -110,6 +110,8 @@ myManageHook = composeAll
                                , ("Chromium",  doShift "web")
                                , ("Vlc",       doShift "avi")
                                , ("Emacs",     doShift "txt")
+                               , ("Wfica",     doShift "tmp")
+                               , ("Wfica",     doFullFloat  )
                                ]
 
 myFullHook = composeAll
