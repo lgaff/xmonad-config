@@ -8,14 +8,10 @@ Config { font = "xft:Anonymous Pro:size=10"
        , borderColor = "#586e75"
        , lowerOnStart = False
        , position = TopW L 100
-       , commands = [ Run MultiCpu ["-L", "0", "-H", "50", "--normal", "#859900", "--high", "#d33682", "-t", "<fc=#2aa198><autobar></fc>"] 10
-       	 	    , Run Memory ["-H", "50", "-L", "0", "-h", "#d33682", "--normal", "#849900", "-t", "<fc=#2aa198><usedbar></fc>"] 10
-		    , Run Date "%a %d-%b-%Y %H:%M:%S" "date" 10
-		    , Run Swap ["-t", "<fc=#2aa198><usedratio>%</fc>"] 10
---                    , Run Volume "HDA Intel" "Master" [] 10
+       , commands = [ Run Date "%a %d-%b-%Y %H:%M:%S" "date" 10
 		    , Run StdinReader
 		    ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%StdinReader% }{ cpu %multicpu% : mem %memory% : swap %swap% : <fc=#2aa198>%date%</fc> : vol"
+       , template = "%StdinReader% }{ : <fc=#2aa198>%date%</fc> : vol"
        }
