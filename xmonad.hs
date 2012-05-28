@@ -28,8 +28,7 @@ import System.IO                        (hPutStrLn)
 import Data.Maybe                       (isJust)
 
 main = do
-     xmproc <- spawnPipe "/usr/bin/xmobar /home/duran/.xmonad/xmobarrc"
-     xmsess <- spawn "/home/duran/.xsession"
+     xmproc <- spawnPipe "/usr/local/bin/xmobar /home/duran/.xmonad/xmobarrc"
      xmonad $ defaultConfig
      	    { terminal = myTerminal
 	    , focusFollowsMouse = False
@@ -74,7 +73,7 @@ myTitleFgColor	       = "white"
 myUrgencyHintFgColor   = "white"
 myUrgencyHintBgColor   = "brown"
 
-myLayoutHook = smartBorders $ (Full ||| tiled ||| Mirror tiled ||| Roledex  ||| Accordion ||| Grid )
+myLayoutHook = smartBorders $ (Full ||| Mirror tiled ||| Roledex  ||| Accordion ||| Grid )
     where
 	tiled = ResizableTall nmaster delta ratio []
 	nmaster = 1
@@ -112,6 +111,7 @@ myManageHook = composeAll
                                , ("Emacs",     doShift "txt")
                                , ("Wfica",     doShift "tmp")
                                , ("Wfica",     doFullFloat  )
+                               , ("Firefox",   doShift "web")
                                ]
 
 myFullHook = composeAll
@@ -144,7 +144,7 @@ myKeys x = M.union (M.fromList (newKeys x)) (keys defaultConfig x)
 
 newKeys conf@(XConfig { XMonad.modMask = modm}) = 
 	[ ((modm, xK_q), spawn "xmonad --recompile; killall redshift xmobar; xmonad --restart")
-	, ((modm .|. shiftMask, xK_b), runOrRaise "chromium" (className =? "Chromium"))
+	, ((modm .|. shiftMask, xK_b), runOrRaise "firefox" (className =? "Firefox"))
 	, ((modm, xK_e), raiseEditor)
 	, ((modm, xK_f), nextMatchWithThis Forward className)
 	, ((modm, xK_b), nextMatchWithThis Backward className)
