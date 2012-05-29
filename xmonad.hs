@@ -28,7 +28,7 @@ import System.IO                        (hPutStrLn)
 import Data.Maybe                       (isJust)
 
 main = do
-     xmproc <- spawnPipe "/usr/local/bin/xmobar /home/duran/.xmonad/xmobarrc"
+     xmproc <- spawnPipe "/usr/bin/xmobar /home/duran/.xmonad/xmobarrc"
      xmonad $ defaultConfig
      	    { terminal = myTerminal
 	    , focusFollowsMouse = False
@@ -148,7 +148,6 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
 	, ((modm, xK_e), raiseEditor)
 	, ((modm, xK_f), nextMatchWithThis Forward className)
 	, ((modm, xK_b), nextMatchWithThis Backward className)
-	, ((modm, xK_c), spawn "~/bin/chromeproxy")
 	, ((modm, xK_grave), toggleWS' ["NSP"])
 	-- workspace cycling
 	, ((modm, xK_Right), moveTo Next skipEmptyAndSP)
