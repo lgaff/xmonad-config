@@ -111,7 +111,7 @@ myManageHook = composeAll
                                , ("Emacs",     doShift "txt")
                                , ("Wfica",     doShift "tmp")
                                , ("Wfica",     doFullFloat  )
-                               , ("Firefox",   doShift "web")
+                               , ("Iceweasel",   doShift "web")
                                ]
 
 myFullHook = composeAll
@@ -144,7 +144,7 @@ myKeys x = M.union (M.fromList (newKeys x)) (keys defaultConfig x)
 
 newKeys conf@(XConfig { XMonad.modMask = modm}) = 
 	[ ((modm, xK_q), spawn "xmonad --recompile; killall redshift xmobar; xmonad --restart")
-	, ((modm .|. shiftMask, xK_b), runOrRaise "firefox" (className =? "Firefox"))
+	, ((modm .|. shiftMask, xK_b), runOrRaise "firefox" (className =? "Iceweasel"))
 	, ((modm, xK_e), raiseEditor)
 	, ((modm, xK_f), nextMatchWithThis Forward className)
 	, ((modm, xK_b), nextMatchWithThis Backward className)
