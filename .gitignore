@@ -1,4 +1,4 @@
 *.hi
 *.o
-*-x86_64-freebsd
+*-x86_64-*
 *.errors
