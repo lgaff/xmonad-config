@@ -23,6 +23,8 @@ import XMonad.Util.EZConfig             (additionalKeysP)
 import XMonad.Util.Run                  (spawnPipe)
 import XMonad.Util.Scratchpad           (scratchpadManageHook, scratchpadSpawnActionTerminal)
 import XMonad.Util.WorkspaceCompare     (getSortByIndex)
+import XMonad.Util.XSelection
+import XMonad.Util.Paste
 import qualified Data.Map as M
 import System.IO                        (hPutStrLn)
 import Data.Maybe                       (isJust)
@@ -73,7 +75,7 @@ myTitleFgColor	       = "white"
 myUrgencyHintFgColor   = "white"
 myUrgencyHintBgColor   = "brown"
 
-myLayoutHook = smartBorders $ (Full ||| Mirror tiled ||| Roledex  ||| Accordion ||| Grid )
+myLayoutHook = smartBorders $ (Full ||| tiled ||| Roledex  ||| Accordion ||| Grid )
     where
 	tiled = ResizableTall nmaster delta ratio []
 	nmaster = 1
@@ -105,7 +107,7 @@ myWorkSpaces =
 
 myManageHook = composeAll 
              [matchAny v --> a | (v, a) <- myActions ] <+> manageScratchpad <+> myFullHook
-             where myActions = [ ("rdesktop",  doShift "msg")
+             where myActions = [ ("rdesktop",  doShift "rdp")
                                , ("Chromium",  doShift "web")
                                , ("Vlc",       doShift "avi")
                                , ("Emacs",     doShift "txt")
@@ -144,8 +146,10 @@ myKeys x = M.union (M.fromList (newKeys x)) (keys defaultConfig x)
 
 newKeys conf@(XConfig { XMonad.modMask = modm}) = 
 	[ ((modm, xK_q), spawn "xmonad --recompile; killall redshift xmobar; xmonad --restart")
-	, ((modm .|. shiftMask, xK_b), runOrRaise "firefox" (className =? "Iceweasel"))
-	, ((modm, xK_e), raiseEditor)
+	, ((modm .|. shiftMask, xK_b), runOrRaise "chromeproxy" (className =? "Chromium"))
+        , ((modm, xK_c), runOrRaise "chromium" (className =? "Chromium"))  
+        , ((modm, xK_u), safePromptSelection "chromium")
+	, ((modm, xK_e), runOrRaise "emacs" (className =? "Emacs"))
 	, ((modm, xK_f), nextMatchWithThis Forward className)
 	, ((modm, xK_b), nextMatchWithThis Backward className)
 	, ((modm, xK_grave), toggleWS' ["NSP"])
@@ -157,6 +161,7 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
 	, ((modm, xK_Up), moveTo Next EmptyWS)
         , ((modm .|. shiftMask, xK_Up), shiftTo Next EmptyWS)
         , ((modm, xK_s), scratchpadSpawnActionTerminal myTerminal)
+        , ((modm, xK_y), pasteSelection)  
 	]
         where skipEmptyAndSP = (WSIs $ noEmptyOrSP ["NSP"])
 
@@ -171,7 +176,13 @@ audioKeys = [ ("<XF86AudioMute>"	, spawn "amixer -q set Master toggle" )
 	    , ("<XF86AudioLowerVolume>" , spawn "amixer -q set Master 10%-" )
             , ("<XF86Forward>"          , moveTo Next NonEmptyWS)
             , ("<XF86Back>"             , moveTo Prev NonEmptyWS)
+              -- I'm being lazy here and just adding these under audioKeys... --
+            , ("<XF86Sleep>"            , spawn "sudo pm-suspend")
+            , ("<XF86Display>"          , spawn "/home/duran/bin/screen-toggle")
 	    ]
 
 		     
 toggleOrViewNoSP = toggleOrDoSkip ["NSP"] W.greedyView	
+
+
+
