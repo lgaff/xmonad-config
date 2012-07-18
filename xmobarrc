@@ -12,10 +12,11 @@ Config { font = "xft:Anonymous Pro:size=10"
        	 	    , Run Memory ["-H", "50", "-L", "0", "-h", "#d33682", "--normal", "#849900", "-t", "<fc=#2aa198><usedbar></fc>"] 10
 		    , Run Date "%a %d-%b-%Y %H:%M:%S" "date" 10
 		    , Run Swap ["-t", "<fc=#2aa198><usedratio>%</fc>"] 10
---                    , Run Volume "HDA Intel" "Master" [] 10
+                    , Run BatteryP ["BAT0"] ["-L", "25", "-H", "26", "--high", "#859900", "--low", "#d33682", "-t", "<fc=#2aa198><leftbar></fc>", "--", "-c", "energy_full" ] 10
+--                    , Run Volume "default" "Master" [] 10
 		    , Run StdinReader
 		    ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%StdinReader% }{ cpu %multicpu% : mem %memory% : swap %swap% : <fc=#2aa198>%date%</fc> : vol"
+       , template = "%StdinReader% }{ cpu %multicpu% : mem %memory% : swap %swap% : bat %battery% : <fc=#2aa198>%date%</fc> "
        }
