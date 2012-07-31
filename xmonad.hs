@@ -30,7 +30,7 @@ import System.IO                        (hPutStrLn)
 import Data.Maybe                       (isJust)
 
 main = do
-     xmproc <- spawnPipe "/usr/bin/xmobar /home/duran/.xmonad/xmobarrc"
+     xmproc <- spawnPipe "/home/duran/.cabal/bin/xmobar /home/duran/.xmonad/xmobarrc"
      xmonad $ defaultConfig
      	    { terminal = myTerminal
 	    , focusFollowsMouse = False
