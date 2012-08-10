@@ -1,7 +1,7 @@
 -- -*-haskell-*-
 -- xmonad config for dzen
 
-import XMonad
+import XMonad 
 
 import XMonad.Layout.NoBorders          (smartBorders)
 import XMonad.Layout.ResizableTile      
@@ -16,18 +16,32 @@ import XMonad.Hooks.ManageHelpers
 
 import XMonad.Actions.CycleWS
 import XMonad.Actions.WindowGo 
+import XMonad.Actions.WindowBringer
 import XMonad.Actions.GroupNavigation
+import qualified XMonad.Actions.Submap as SM
+import XMonad.Actions.Search
+
+
+import XMonad.Prompt
+import XMonad.Prompt.MPD
+import XMonad.Prompt.Shell
+
+import qualified Network.MPD as MPD
+import qualified Network.MPD.Commands.Extensions as MPDE
+
 
 import qualified XMonad.StackSet as W
 import XMonad.Util.EZConfig             (additionalKeysP)
 import XMonad.Util.Run                  (spawnPipe)
-import XMonad.Util.Scratchpad           (scratchpadManageHook, scratchpadSpawnActionTerminal)
+import XMonad.Util.Scratchpad
+import XMonad.Util.NamedScratchpad
 import XMonad.Util.WorkspaceCompare     (getSortByIndex)
 import XMonad.Util.XSelection
 import XMonad.Util.Paste
 import qualified Data.Map as M
 import System.IO                        (hPutStrLn)
 import Data.Maybe                       (isJust)
+import Data.Either.Utils
 
 main = do
      xmproc <- spawnPipe "/home/duran/.cabal/bin/xmobar /home/duran/.xmonad/xmobarrc"
@@ -44,6 +58,18 @@ main = do
      	    , keys = myKeys
      	    , workspaces = myWorkSpaces
      	    } `additionalKeysP` audioKeys
+
+-- Prompt
+myPrompt = defaultXPConfig
+           { font = myFont
+           , bgColor = myBgColor 
+           , fgColor = myFgColor
+           , promptBorderWidth = 1
+           , position = Top
+           , height = 22
+           , defaultText = []
+           }
+                           
 
 
 -- paths.
@@ -103,6 +129,7 @@ myWorkSpaces =
    , "avi"	     
    , "rdp"
    , "tmp"
+   , "mpd"  
    ]
 
 myManageHook = composeAll 
@@ -120,13 +147,13 @@ myFullHook = composeAll
            [ isFullscreen --> doFullFloat ]
 
 -- pbrisbin's matchAny (http://pbrisbin.com/static/docs/haskell/xmonad-config/src/Utils.html)
-matchAny :: String -> Query Bool
-matchAny x = foldr ((<||>) . (=? x)) (return False) [className, title, name, role]
+matchAny :: String -> XMonad.Query Bool
+matchAny x = foldr ((<||>) . (=? x)) (return False) [className, title, wmName, role]
 
-name :: Query String
-name = stringProperty "WM_NAME"
+wmName :: XMonad.Query String
+wmName = stringProperty "WM_NAME"
 
-role :: Query String
+role :: XMonad.Query String
 role = stringProperty "WM_ROLE"             
 
 manageScratchpad :: ManageHook
@@ -136,6 +163,12 @@ manageScratchpad = scratchpadManageHook (W.RationalRect l t w h)
                         w = 0.5    -- width
                         t = 0.25   -- distance from top
                         l = 0.25   -- distance from left
+                        
+myScratchpads = [                       
+  NS "music" "urxvt -name ncmpcpp -e ncmpcpp" (appName =? "ncmpcpp") (customFloating $ W.RationalRect 0.5 0.5 0.25 0.25)
+  ]
+                
+mySearchEngine = intelligent (multi)
 	  
 myMatchAnywhereFloatsC = []
 myMatchAnywhereFloatsT = []
@@ -148,6 +181,7 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
 	[ ((modm, xK_q), spawn "xmonad --recompile; killall redshift xmobar; xmonad --restart")
 	, ((modm .|. shiftMask, xK_b), runOrRaise "chromeproxy" (className =? "Chromium"))
         , ((modm, xK_c), runOrRaise "chromium" (className =? "Chromium"))  
+        , ((modm, xK_m), namedScratchpadAction myScratchpads "music")  
         , ((modm, xK_u), safePromptSelection "chromium")
 	, ((modm, xK_e), runOrRaise "emacs" (className =? "Emacs"))
 	, ((modm, xK_f), nextMatchWithThis Forward className)
@@ -161,9 +195,35 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
 	, ((modm, xK_Up), moveTo Next EmptyWS)
         , ((modm .|. shiftMask, xK_Up), shiftTo Next EmptyWS)
         , ((modm, xK_s), scratchpadSpawnActionTerminal myTerminal)
-        , ((modm, xK_y), pasteSelection)  
-	]
+        , ((modm .|. shiftMask, xK_s), shellPrompt myPrompt)
+        , ((modm, xK_y), pasteSelection)
+        , ((modm, xK_a), addAndPlay MPD.withMPD myPrompt [MPD.Artist,MPD.Album] >> return ())
+        , ((modm .|. shiftMask, xK_a), addAndPlay MPD.withMPD myPrompt [MPD.Album] >> return ())
+        , ((modm, xK_z), addAndPlay MPD.withMPD myPrompt [MPD.Title] >> return ())
+        , ((modm, xK_slash), SM.submap $ searchEngineMap $ promptSearchBrowser  myPrompt "chromium")
+        , ((modm .|. shiftMask, xK_slash), SM.submap $ searchEngineMap $ selectSearchBrowser "chromium")
+        , ((modm, xK_g), gotoMenu)
+        , ((modm .|. shiftMask, xK_g), bringMenu)  
+        ]
         where skipEmptyAndSP = (WSIs $ noEmptyOrSP ["NSP"])
+
+searchEngineMap method = M.fromList $
+                         [ ((0, xK_slash), method google)
+                         , ((0, xK_w), method wikipedia)
+                         , ((0, xK_h), method hoogle)
+                         , ((0, xK_i), method images)
+                         , ((0, xK_y), method youtube)
+                         , ((0, xK_m), method maps)  
+                         , ((0, xK_a), method alpha)  
+                         , ((0, xK_l), method cliki)  
+                         , ((0, xK_p), method perldoc)  
+                         ]  
+                         where 
+                           cliki     = searchEngine "cliki" "http://www.cliki.net/admin/search?words="
+                           perldoc   = searchEngine "perldoc" "http://perldoc.perl.org/search.html?q="
+
+  
+
 
 noSPWS dir wtype = do t <- findWorkspace getSortByIndex dir wtype 1
                       windows . W.greedyView $ t
@@ -176,6 +236,11 @@ audioKeys = [ ("<XF86AudioMute>"	, spawn "amixer -q set Master toggle" )
 	    , ("<XF86AudioLowerVolume>" , spawn "amixer -q set Master 10%-" )
             , ("<XF86Forward>"          , moveTo Next NonEmptyWS)
             , ("<XF86Back>"             , moveTo Prev NonEmptyWS)
+              -- MPD keys --
+            , ("<XF86AudioPlay>", io $ return . fromRight =<< MPD.withMPD MPDE.toggle )
+            , ("<XF86AudioStop>", io $ return . fromRight =<< MPD.withMPD MPD.clear)  
+            , ("<XF86AudioNext>", io $ return . fromRight =<< MPD.withMPD MPD.next)
+            , ("<XF86AudioPrev>", io $ return . fromRight =<< MPD.withMPD MPD.previous)              
               -- I'm being lazy here and just adding these under audioKeys... --
             , ("<XF86Sleep>"            , spawn "sudo pm-suspend")
             , ("<XF86Display>"          , spawn "/home/duran/bin/screen-toggle")
@@ -183,6 +248,11 @@ audioKeys = [ ("<XF86AudioMute>"	, spawn "amixer -q set Master toggle" )
 
 		     
 toggleOrViewNoSP = toggleOrDoSkip ["NSP"] W.greedyView	
+
+
+-- MPD stuff follows along with braying and neighing of barnyard animals.
+
+--addMatching MPD.withMPD defaultXPConfig [MPD.Artist, MPD.Album] >> return ()
 
 
 
