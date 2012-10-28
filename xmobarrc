@@ -8,16 +8,16 @@ Config { font = "xft:Anonymous Pro:size=10"
        , borderColor = "#586e75"
        , lowerOnStart = False
        , position = TopW L 100
-       , commands = [ Run MultiCpu ["-L", "0", "-H", "50", "--normal", "#859900", "--high", "#d33682", "-t", "<fc=#2aa198><autobar></fc>"] 10
-       	 	    , Run Memory ["-H", "50", "-L", "0", "-h", "#d33682", "--normal", "#849900", "-t", "<fc=#2aa198><usedbar></fc>"] 10
+       , commands = [ Run MultiCpu ["-L", "0", "-H", "50", "--normal", "#859900", "--high", "#d33682", "-t", "<fc=#2aa198><autouser></fc>"] 10
+       	 	    , Run Memory ["-H", "1500", "-L", "0", "-h", "#d33682", "--normal", "#849900", "-t", "<fc=#2aa198><used>M</fc>"] 10
 		    , Run Date "%a %d-%b-%Y %H:%M:%S" "date" 10
-		    , Run Swap ["-t", "<fc=#2aa198><usedratio>%</fc>"] 10
-                    , Run BatteryP ["BAT0"] ["-L", "25", "-H", "26", "--high", "#859900", "--low", "#d33682", "-t", "<fc=#2aa198><leftbar></fc>", "--" ] 10
-                    , Run MPD ["-t", "<statei> <artist> - <title> (<album>)", "--", "-P", ">", "-S", "#", "-Z", "//"] 10
+		    , Run Swap ["-t", "<fc=#2aa198><used>M</fc>"] 10
+                    , Run BatteryP ["BAT0"] ["-L", "25", "-H", "26", "--high", "#859900", "--low", "#d33682", "-t", "<fc=#2aa198>B:<left></fc>", "--" ] 10
+                    , Run MPD ["-t", "<statei> <artist> - <title>", "--", "-P", ">", "-S", "#", "-Z", "//"] 10
                     , Run Volume "default" "Master" ["--normal", "#859900", 
                                                      "--high", "#859900", 
                                                      "--low", "#859900", 
-                                                     "-t", "v:<status> <fc=#2aa198><volumebar></fc>",
+                                                     "-t", "<status><fc=#2aa198><volume></fc>",
                                                      "--",
                                                      "--onc", "#657b83",
                                                      "--offc", "#657b83",
@@ -26,5 +26,5 @@ Config { font = "xft:Anonymous Pro:size=10"
 		    ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%StdinReader% }{ [ %mpd% ] ::: %default:Master% : cpu %multicpu% : mem %memory% : swap %swap% : bat %battery% : <fc=#2aa198>%date%</fc>"
+       , template = "%StdinReader% }{ [%mpd% :: %default:Master%] %multicpu%::%memory%<->%swap% ::: %battery% :::  <fc=#2aa198>%date%</fc>"
        }

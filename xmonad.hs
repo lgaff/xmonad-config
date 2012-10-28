@@ -18,6 +18,7 @@ import XMonad.Actions.CycleWS
 import XMonad.Actions.WindowGo 
 import XMonad.Actions.WindowBringer
 import XMonad.Actions.GroupNavigation
+import XMonad.Actions.GridSelect
 import qualified XMonad.Actions.Submap as SM
 import XMonad.Actions.Search
 
@@ -141,6 +142,7 @@ myManageHook = composeAll
                                , ("Wfica",     doShift "tmp")
                                , ("Wfica",     doFullFloat  )
                                , ("Iceweasel",   doShift "web")
+                               , ("Meld", doShift "tmp")  
                                ]
 
 myFullHook = composeAll
@@ -165,7 +167,8 @@ manageScratchpad = scratchpadManageHook (W.RationalRect l t w h)
                         l = 0.25   -- distance from left
                         
 myScratchpads = [                       
-  NS "music" "urxvt -name ncmpcpp -e ncmpcpp" (appName =? "ncmpcpp") (customFloating $ W.RationalRect 0.5 0.5 0.25 0.25)
+   NS "music" "urxvt -name ncmpcpp -e ncmpcpp" (appName =? "ncmpcpp") defaultFloating --(customFloating $ W.RationalRect (1/6) (1/6) (2/3) (2/3))
+
   ]
                 
 mySearchEngine = intelligent (multi)
@@ -197,13 +200,11 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
         , ((modm, xK_s), scratchpadSpawnActionTerminal myTerminal)
         , ((modm .|. shiftMask, xK_s), shellPrompt myPrompt)
         , ((modm, xK_y), pasteSelection)
-        , ((modm, xK_a), addAndPlay MPD.withMPD myPrompt [MPD.Artist,MPD.Album] >> return ())
-        , ((modm .|. shiftMask, xK_a), addAndPlay MPD.withMPD myPrompt [MPD.Album] >> return ())
-        , ((modm, xK_z), addAndPlay MPD.withMPD myPrompt [MPD.Title] >> return ())
         , ((modm, xK_slash), SM.submap $ searchEngineMap $ promptSearchBrowser  myPrompt "chromium")
         , ((modm .|. shiftMask, xK_slash), SM.submap $ searchEngineMap $ selectSearchBrowser "chromium")
         , ((modm, xK_g), gotoMenu)
         , ((modm .|. shiftMask, xK_g), bringMenu)  
+        , ((modm .|. shiftMask, xK_m), runSelectedAction defaultGSConfig myMPDGridSelect)
         ]
         where skipEmptyAndSP = (WSIs $ noEmptyOrSP ["NSP"])
 
@@ -217,6 +218,7 @@ searchEngineMap method = M.fromList $
                          , ((0, xK_a), method alpha)  
                          , ((0, xK_l), method cliki)  
                          , ((0, xK_p), method perldoc)  
+                         , ((0, xK_c), method hackage)  
                          ]  
                          where 
                            cliki     = searchEngine "cliki" "http://www.cliki.net/admin/search?words="
@@ -232,8 +234,8 @@ noEmptyOrSP s = return (\w -> (W.tag w `notElem` s) && isJust (W.stack w))
 
 audioKeys :: [(String, X())]
 audioKeys = [ ("<XF86AudioMute>"	, spawn "amixer -q set Master toggle" )
-	    , ("<XF86AudioRaiseVolume>" , spawn "amixer -q set Master 10%+" )
-	    , ("<XF86AudioLowerVolume>" , spawn "amixer -q set Master 10%-" )
+	    , ("<XF86AudioRaiseVolume>" , spawn "amixer -q set Master 5%+" )
+	    , ("<XF86AudioLowerVolume>" , spawn "amixer -q set Master 5%-" )
             , ("<XF86Forward>"          , moveTo Next NonEmptyWS)
             , ("<XF86Back>"             , moveTo Prev NonEmptyWS)
               -- MPD keys --
@@ -254,5 +256,13 @@ toggleOrViewNoSP = toggleOrDoSkip ["NSP"] W.greedyView
 
 --addMatching MPD.withMPD defaultXPConfig [MPD.Artist, MPD.Album] >> return ()
 
-
-
+myMPDGridSelect :: [(String, X ())]
+myMPDGridSelect = [ ("Play/Pause", io $ return . fromRight =<< MPD.withMPD MPDE.toggle)
+                  , ("Clear playlist", io $ return . fromRight =<< MPD.withMPD MPD.clear)
+                  , ("Next track", io $ return . fromRight =<< MPD.withMPD MPD.next)
+                  , ("Previous track", io $ return . fromRight =<< MPD.withMPD MPD.previous)
+                  , ("Add all by artist",  addAndPlay MPD.withMPD myPrompt [MPD.Artist] >> return ())
+                  , ("Add all by album", addAndPlay MPD.withMPD myPrompt [MPD.Album] >> return ())
+                  , ("Enqueue by artist/album/title", addMatching MPD.withMPD myPrompt [MPD.Artist, MPD.Album, MPD.Title] >> return())
+                  , ("Enqueue by album", addMatching MPD.withMPD myPrompt [MPD.Album] >> return ())
+                  ]
