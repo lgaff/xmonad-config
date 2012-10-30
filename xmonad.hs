@@ -205,6 +205,9 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
         , ((modm, xK_g), gotoMenu)
         , ((modm .|. shiftMask, xK_g), bringMenu)  
         , ((modm .|. shiftMask, xK_m), runSelectedAction defaultGSConfig myMPDGridSelect)
+        , ((modm, xK_w), nextScreen)
+        , ((modm .|. shiftMask, xK_w), swapNextScreen >> nextScreen)
+          
         ]
         where skipEmptyAndSP = (WSIs $ noEmptyOrSP ["NSP"])
 
