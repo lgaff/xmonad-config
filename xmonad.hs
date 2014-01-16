@@ -1,6 +1,4 @@
 -- -*-haskell-*-
--- xmonad config for dzen
-
 import XMonad 
 
 import XMonad.Layout.NoBorders          (smartBorders)
@@ -24,12 +22,8 @@ import XMonad.Actions.Search
 
 
 import XMonad.Prompt
-import XMonad.Prompt.MPD
+-- import XMonad.Prompt.MPD
 import XMonad.Prompt.Shell
-
-import qualified Network.MPD as MPD
-import qualified Network.MPD.Commands.Extensions as MPDE
-
 
 import qualified XMonad.StackSet as W
 import XMonad.Util.EZConfig             (additionalKeysP)
@@ -42,10 +36,10 @@ import XMonad.Util.Paste
 import qualified Data.Map as M
 import System.IO                        (hPutStrLn)
 import Data.Maybe                       (isJust)
-import Data.Either.Utils
+-- import Data.Either.Utils
 
 main = do
-     xmproc <- spawnPipe "/home/duran/.cabal/bin/xmobar /home/duran/.xmonad/xmobarrc"
+     xmproc <- spawnPipe "/home/gaffl/.cabal/bin/xmobar" -- /home/gaffl/.xmonad/xmobarrc"
      xmonad $ defaultConfig
      	    { terminal = myTerminal
 	    , focusFollowsMouse = False
@@ -73,12 +67,8 @@ myPrompt = defaultXPConfig
                            
 
 
--- paths.
-myBitmapsPath = ".dzen/bitmaps/"
-
-myFont = "xft:Anonymous Pro:size=10:regular"
---myFont = "-*-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
-myTerminal = "urxvt"
+myFont = "xft:Anonymous Pro Minus:size=10:regular"
+myTerminal = "terminator"
 
 -- Colors
 myBgBgColor = "black"
@@ -166,8 +156,8 @@ manageScratchpad = scratchpadManageHook (W.RationalRect l t w h)
                         t = 0.25   -- distance from top
                         l = 0.25   -- distance from left
                         
-myScratchpads = [                       
-   NS "music" "urxvt -name ncmpcpp -e ncmpcpp" (appName =? "ncmpcpp") defaultFloating --(customFloating $ W.RationalRect (1/6) (1/6) (2/3) (2/3))
+-- myScratchpads = [                       
+--    NS "music" "urxvt -name ncmpcpp -e ncmpcpp" (appName =? "ncmpcpp") defaultFloating --(customFloating $ W.RationalRect (1/6) (1/6) (2/3) (2/3))
 
   ]
                 
@@ -182,10 +172,10 @@ myKeys x = M.union (M.fromList (newKeys x)) (keys defaultConfig x)
 
 newKeys conf@(XConfig { XMonad.modMask = modm}) = 
 	[ ((modm, xK_q), spawn "xmonad --recompile; killall redshift xmobar; xmonad --restart")
-	, ((modm .|. shiftMask, xK_b), runOrRaise "chromeproxy" (className =? "Chromium"))
-        , ((modm, xK_c), runOrRaise "chromium" (className =? "Chromium"))  
+	, ((modm .|. shiftMask, xK_b), runOrRaise "chromeproxy" (className =? "Google-chrome-unstable"))
+        , ((modm, xK_c), runOrRaise "google-chrome-unstable" (className =? "Google-chrome-unstable"))  
         , ((modm, xK_m), namedScratchpadAction myScratchpads "music")  
-        , ((modm, xK_u), safePromptSelection "chromium")
+        , ((modm, xK_u), safePromptSelection "google-chrome-unstable")
 	, ((modm, xK_e), runOrRaise "emacs" (className =? "Emacs"))
 	, ((modm, xK_f), nextMatchWithThis Forward className)
 	, ((modm, xK_b), nextMatchWithThis Backward className)
@@ -200,11 +190,11 @@ newKeys conf@(XConfig { XMonad.modMask = modm}) =
         , ((modm, xK_s), scratchpadSpawnActionTerminal myTerminal)
         , ((modm .|. shiftMask, xK_s), shellPrompt myPrompt)
         , ((modm, xK_y), pasteSelection)
-        , ((modm, xK_slash), SM.submap $ searchEngineMap $ promptSearchBrowser  myPrompt "chromium")
-        , ((modm .|. shiftMask, xK_slash), SM.submap $ searchEngineMap $ selectSearchBrowser "chromium")
+        , ((modm, xK_slash), SM.submap $ searchEngineMap $ promptSearchBrowser  myPrompt "google-chrome-unstable")
+        , ((modm .|. shiftMask, xK_slash), SM.submap $ searchEngineMap $ selectSearchBrowser "google-chrome-unstable")
         , ((modm, xK_g), gotoMenu)
         , ((modm .|. shiftMask, xK_g), bringMenu)  
-        , ((modm .|. shiftMask, xK_m), runSelectedAction defaultGSConfig myMPDGridSelect)
+--        , ((modm .|. shiftMask, xK_m), runSelectedAction defaultGSConfig myMPDGridSelect)
         , ((modm, xK_w), nextScreen)
         , ((modm .|. shiftMask, xK_w), swapNextScreen >> nextScreen)
           
@@ -241,11 +231,12 @@ audioKeys = [ ("<XF86AudioMute>"	, spawn "amixer -q set Master toggle" )
 	    , ("<XF86AudioLowerVolume>" , spawn "amixer -q set Master 5%-" )
             , ("<XF86Forward>"          , moveTo Next NonEmptyWS)
             , ("<XF86Back>"             , moveTo Prev NonEmptyWS)
-              -- MPD keys --
-            , ("<XF86AudioPlay>", io $ return . fromRight =<< MPD.withMPD MPDE.toggle )
-            , ("<XF86AudioStop>", io $ return . fromRight =<< MPD.withMPD MPD.clear)  
-            , ("<XF86AudioNext>", io $ return . fromRight =<< MPD.withMPD MPD.next)
-            , ("<XF86AudioPrev>", io $ return . fromRight =<< MPD.withMPD MPD.previous)              
+            --   -- MPD keys --
+            -- , ("<XF86AudioPlay>", io $ return . fromRight =<< MPD.withMPD MPDE.toggle )
+            -- , ("<XF86AudioStop>", io $ return . fromRight =<< MPD.withMPD MPD.clear)  
+            -- , ("<XF86AudioNext>", io $ return . fromRight =<< MPD.withMPD MPD.next)
+            -- , ("<XF86AudioPrev>", io $ return . fromRight =<< MPD.withMPD MPD.previous)    
+          
               -- I'm being lazy here and just adding these under audioKeys... --
             , ("<XF86Sleep>"            , spawn "sudo pm-suspend")
             , ("<XF86Display>"          , spawn "/home/duran/bin/screen-toggle")
@@ -255,17 +246,17 @@ audioKeys = [ ("<XF86AudioMute>"	, spawn "amixer -q set Master toggle" )
 toggleOrViewNoSP = toggleOrDoSkip ["NSP"] W.greedyView	
 
 
--- MPD stuff follows along with braying and neighing of barnyard animals.
+-- -- MPD stuff follows along with braying and neighing of barnyard animals.
 
---addMatching MPD.withMPD defaultXPConfig [MPD.Artist, MPD.Album] >> return ()
+-- --addMatching MPD.withMPD defaultXPConfig [MPD.Artist, MPD.Album] >> return ()
 
-myMPDGridSelect :: [(String, X ())]
-myMPDGridSelect = [ ("Play/Pause", io $ return . fromRight =<< MPD.withMPD MPDE.toggle)
-                  , ("Clear playlist", io $ return . fromRight =<< MPD.withMPD MPD.clear)
-                  , ("Next track", io $ return . fromRight =<< MPD.withMPD MPD.next)
-                  , ("Previous track", io $ return . fromRight =<< MPD.withMPD MPD.previous)
-                  , ("Add all by artist",  addAndPlay MPD.withMPD myPrompt [MPD.Artist] >> return ())
-                  , ("Add all by album", addAndPlay MPD.withMPD myPrompt [MPD.Album] >> return ())
-                  , ("Enqueue by artist/album/title", addMatching MPD.withMPD myPrompt [MPD.Artist, MPD.Album, MPD.Title] >> return())
-                  , ("Enqueue by album", addMatching MPD.withMPD myPrompt [MPD.Album] >> return ())
-                  ]
+-- myMPDGridSelect :: [(String, X ())]
+-- myMPDGridSelect = [ ("Play/Pause", io $ return . fromRight =<< MPD.withMPD MPDE.toggle)
+--                   , ("Clear playlist", io $ return . fromRight =<< MPD.withMPD MPD.clear)
+--                   , ("Next track", io $ return . fromRight =<< MPD.withMPD MPD.next)
+--                   , ("Previous track", io $ return . fromRight =<< MPD.withMPD MPD.previous)
+--                   , ("Add all by artist",  addAndPlay MPD.withMPD myPrompt [MPD.Artist] >> return ())
+--                   , ("Add all by album", addAndPlay MPD.withMPD myPrompt [MPD.Album] >> return ())
+--                   , ("Enqueue by artist/album/title", addMatching MPD.withMPD myPrompt [MPD.Artist, MPD.Album, MPD.Title] >> return())
+--                   , ("Enqueue by album", addMatching MPD.withMPD myPrompt [MPD.Album] >> return ())
+--                   ]
